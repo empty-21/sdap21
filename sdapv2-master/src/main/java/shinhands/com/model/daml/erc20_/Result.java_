@@ -1,0 +1,35 @@
+package shinhands.com.model.daml.erc20_;
+
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import shinhands.com.model.daml.template.ERC20;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class Result {
+    private String _id;
+    private String templateId;
+    private String agreementText;
+    private String contractId;
+    private Key key;
+    private List<String> observers;
+    private List<String> signatories;
+    private ERC20 payload;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    class Key {
+        private String _1;
+        private String _2;
+    }
+}

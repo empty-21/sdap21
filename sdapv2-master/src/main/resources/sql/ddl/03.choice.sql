@@ -1,0 +1,7 @@
+-- CREATE TABLE "choice" (
+--     contractId VARCHAR(255), -- REFERENCES contract (contractId),
+--     choiceName VARCHAR (255),
+--     -- 실행한 사용자
+--     performer VARCHAR (255),
+--     createdAt TIMESTAMP WITH TIME ZONE
+-- )

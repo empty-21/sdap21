@@ -1,0 +1,36 @@
+package shinhands.com.model.daml.template;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class Service extends Query {
+    private String serviceName;
+    private String tokenSymbol;
+    private String category;
+    private List<Object> attribute;
+    private List<String> signatories;
+    private String symbolImage;
+    private BigDecimal totalSupply;
+    private String issuerAddress;
+    private String ownerAddress;
+    private String issuer;
+    private String owner;
+    private String operator;
+    private Timestamp createAt;
+    private List<String> observers;
+    private String uuid;
+    private String serviceType;
+    private List<Object> tokenInfos;
+}

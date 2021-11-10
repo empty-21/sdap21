@@ -1,0 +1,12 @@
+sdk-version: 1.17.0
+name: Giftcard
+source: Giftcard.daml
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-trigger
+  - ../../dist/ERC20.dar
+  - ../../dist/ERC721.dar
+  - ../../dist/Service.dar
+start-navigator: true

@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "name",
+        "base",
+        "behaviors"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+        },
+        "base": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+        },
+        "behaviors": {
+            "type": "array"
+        }
+    }
+}

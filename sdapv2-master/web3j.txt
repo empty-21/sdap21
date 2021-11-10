@@ -1,0 +1,1 @@
+https://camel.apache.org/camel-quarkus/latest/reference/extensions/web3j.html

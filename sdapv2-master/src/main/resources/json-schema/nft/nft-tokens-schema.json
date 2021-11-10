@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+       "page",
+       "rows",
+       "address",
+       "uuid"
+    ],
+    "properties": {
+      "page": {
+        "type": "number"
+      },
+      "rows": {
+        "type": "number"
+      },
+      "address": {
+        "type": "string",
+        "length": 42
+      },
+      "uuid": {
+        "type": "string"
+      }
+    }
+  }

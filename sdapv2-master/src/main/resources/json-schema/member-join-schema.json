@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+      "userid",
+      "secret",
+      "username",
+      "usertel"
+    ],
+    "properties": {
+      "userid": {
+        "type": "string",
+        "description": "An explanation about the purpose of this instance.",
+        "title": "The price schema",
+        "minLength": 3,
+        "maxLength": 100
+      },
+      "secret": {
+        "type": "string",
+        "minLength": 10,
+        "maxLength": 100
+      },
+      "username": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "usercompany": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "userdepart": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "usertel": {
+        "type": "string",
+        "minLength": 6,
+        "maxLength": 100
+      }
+    }
+  }

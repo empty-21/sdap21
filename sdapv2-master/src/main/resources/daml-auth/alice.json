@@ -1,0 +1,9 @@
+{
+  "https://daml.com/ledger-api": {
+    "ledgerId": "dapLedger",
+    "applicationId": "DAML",
+    "actAs": [
+      "alice"
+    ]
+  }
+}

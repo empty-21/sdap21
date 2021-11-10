@@ -1,0 +1,43 @@
+package shinhands.com.model.daml.erc20_;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Data
+@Builder
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class Payload {
+    private String serviceName;
+    private String tokenSymbol;
+    private String symbolImage;
+    private String category;
+    private String uuid;
+    private Boolean pausable;
+    private Boolean mintable;
+    private Boolean burnable;
+    private Boolean distributable;
+    private Boolean dividable;
+    private Integer decimals;
+    private Boolean delegable;
+    private BigDecimal totalSupply;
+    // private List<Map<String, BigDecimal>> balances;
+    // private List<Object> balances;
+    private Object balances;
+    private List<String> userIDs;
+    private List<String> lockedUserIDs;
+    private String owner;
+    private String ownerAddress;
+    private String issuer;
+    private String issuerAddress;
+    private String operator;
+    private List<String> observers;
+    private String blockchainAddr;
+}

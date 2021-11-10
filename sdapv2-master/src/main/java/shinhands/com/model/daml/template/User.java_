@@ -1,0 +1,17 @@
+package shinhands.com.model.daml.template;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import shinhands.com.model.daml.template.user.Payload;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class User extends Query {
+    private Payload payload;
+}

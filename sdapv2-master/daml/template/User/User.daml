@@ -1,0 +1,30 @@
+module User where
+
+template User
+  with
+    userid     : Party
+    operator : Party
+  where
+    signatory userid
+    observer operator
+
+    controller operator can
+      LockUser : ContractId LockedUser
+        with
+          lockerid : Party
+        do
+          create LockedUser with
+            user = this
+            lockerid = lockerid
+
+template LockedUser
+  with
+    user : User
+    lockerid : Party
+  where
+    signatory lockerid, user.userid
+
+    controller lockerid can
+      Unlock : ContractId User
+        do
+          create user

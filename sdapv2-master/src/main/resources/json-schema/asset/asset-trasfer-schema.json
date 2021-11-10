@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "fromAddress",
+        "toAddress",
+        "amount",
+        "uuid"
+    ],
+    "properties": {
+        "fromAddress": {"type": "string"},
+        "toAddress": {"type": "string"},
+        "amount": {"type": "string"},
+        "uuid": {"type": "string"}
+    }
+}

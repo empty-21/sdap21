@@ -1,0 +1,9 @@
+sdk-version: 1.17.0
+name: Service
+source: Service.daml
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-trigger
+start-navigator: true

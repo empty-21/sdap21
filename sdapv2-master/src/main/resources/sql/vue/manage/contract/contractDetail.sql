@@ -1,0 +1,15 @@
+SELECT
+    seq as ID
+,   CONTRACTID
+,   ARCHIVEDID
+,   PARENTID
+,   TEMPLATEID
+,   SIGNATORIES
+,   OBSERVERS
+,   EXECISERCHOICE
+,   UUID
+,   CONTRACTITEM
+,   TO_CHAR(CREATEDAT, 'yyyymmddhh24miss')  AS  CREATED
+FROM
+    "contract"
+WHERE seq      =    CAST(:#${headers.id} AS INTEGER);

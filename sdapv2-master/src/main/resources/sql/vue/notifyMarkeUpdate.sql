@@ -1,0 +1,7 @@
+UPDATE
+NOTIFY
+SET
+    READMARK    =   1
+,   UPDATEDAT   =   CURRENT_TIMESTAMP
+WHERE
+    ID      =    CAST(:#${headers.id} AS INTEGER)

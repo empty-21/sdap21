@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+       "fromid",
+       "toid",
+       "notimsg"
+    ],
+    "properties": {
+      "fromid": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "toid": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "notimsg": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      }
+    }
+  }

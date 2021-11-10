@@ -1,0 +1,19 @@
+# json파일을 통해 jwt 정보를 스크립트를 통해 생성한다.
+# https://gist.github.com/indrayam/dd47bf6eef849a57c07016c0036f5207
+
+# jwt 설치
+npm install --global jsonwebtokencli
+cat > alice.json <<EOF
+{
+  "https://daml.com/ledger-api": {
+    "ledgerId": "dapLedger",
+    "applicationId": "DAML",
+    "actAs": [
+      "alice"
+    ]
+  }
+}
+EOF
+
+echo -n "$(cat bob.json)" | jwt --encode --secret "my_secret_key"
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL2RhbWwuY29tL2xlZGdlci1hcGkiOnsibGVkZ2VySWQiOiJkYXBMZWRnZXIiLCJhcHBsaWNhdGlvbklkIjoiREFNTCIsImFjdEFzIjpbImFsaWNlIl19fQ.ilvcZZ_EQSVFEzAk0zlkpH3ql5ZbcOtFYmlnCgIQC9Y

@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "serviceName",
+        "tokenSymbol",
+        "totalSupply",
+        "attribute",
+        "signatories",
+        "ownerAddress",
+        "issuerAddress",
+        "category",
+        "owner",
+        "issuer",
+        "observers",
+        "serviceType"
+    ],
+
+    "properties": {
+        "serviceName": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+        },
+        "tokenSymbol": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+        },
+        "totalSupply": {
+            "type": "number"
+        },
+        "attribute": {
+            "type": "array"
+        },
+        "signatories": {
+            "type": "array"
+        },
+        "ownerAddress": {
+            "type": "string"
+        },
+        "issuerAddress": {
+            "type": "string"
+        },
+        "category": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+        },
+        "owner": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+        },
+        "issuer": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100
+        },
+        "observers": {
+            "type": "array"
+        },
+        "serviceType": {
+            "type": "string",
+            "maxLength": 100
+        }
+    }
+}

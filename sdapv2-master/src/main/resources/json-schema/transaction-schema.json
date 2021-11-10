@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+      "txhash"
+    ],
+    "properties": {
+      "txhash": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 100
+      }
+    }
+  }

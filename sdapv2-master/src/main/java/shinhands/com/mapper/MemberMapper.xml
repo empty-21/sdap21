@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="shinhands.com.mapper.MemeberMapper">
+
+	<select id="getPerson" resultType="shinhands.com.mapper.Member">
+		SELECT * FROM Member WHERE email = #{email}
+	</select>
+
+    <insert id="setPerson">
+		insert into member values (#{email}, #{name}, #{pnumber})
+	</insert>
+
+	<update id="updatePerson" parameterType="shinhands.com.mapper.Member">
+		Update Member set name = #{name} where email = #{email}
+	</update>
+
+	<select id="getAllPeople" parameterType="shinhands.com.mapper.Member">
+		SELECT * FROM Member
+	</select>
+
+</mapper>

@@ -1,0 +1,140 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "templateId": {
+            "type": "string"
+        },
+        "payload": {
+            "type": "object",
+            "properties": {
+                "serviceName": {
+                    "type": "string"
+                },
+                "tokenSymbol": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "decimals": {
+                    "type": "number"
+                },
+                "pausable": {
+                    "type": "boolean"
+                },
+                "mintable": {
+                    "type": "boolean"
+                },
+                "burnable": {
+                    "type": "boolean"
+                },
+                "dividable": {
+                    "type": "boolean"
+                },
+                "delegable": {
+                    "type": "boolean"
+                },
+                "distributable": {
+                    "type": "boolean"
+                },
+                "totalSupply": {
+                    "type": "number"
+                },
+                "blockchainAddr": {
+                    "type": "string"
+                },
+                "userIDs": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "balances": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "lockedUserIDs": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "symbolImage": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "operator": {
+                    "type": "string"
+                },
+                "issuer": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "ownerAddress": {
+                    "type": "string"
+                },
+                "issuerAddress": {
+                    "type": "string"
+                },
+                "observers": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "serviceName",
+                "tokenSymbol",
+                "uuid",
+                "decimals",
+                "pausable",
+                "mintable",
+                "burnable",
+                "dividable",
+                "delegable",
+                "distributable",
+                "totalSupply",
+                "blockchainAddr",
+                "userIDs",
+                "balances",
+                "lockedUserIDs",
+                "symbolImage",
+                "category",
+                "operator",
+                "issuer",
+                "owner",
+                "ownerAddress",
+                "issuerAddress",
+                "observers"
+            ]
+        }
+    },
+    "required": [
+        "templateId",
+        "payload"
+    ]
+}

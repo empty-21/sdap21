@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+ 
+
+<configuration>
+  <settings>
+      <setting name="useGeneratedKeys" value="false"/>
+      <setting name="callSettersOnNulls" value="true"/>
+  </settings>
+  <environments default="prod">
+    <environment id="prod">
+      <transactionManager type="JDBC"/>
+        <dataSource type="POOLED">
+            <property name="driver" value="org.postgresql.Driver"/>
+            <property name="url" value="jdbc:postgresql://localhost:5432/dopen"/>
+            <property name="username" value="dopen"/>
+            <property name="password" value="dopen"/>
+        </dataSource>
+    </environment>
+  </environments>
+  <!-- mapping files -->
+  <mappers>
+      <package name="shinhands.com.mapper"/>
+  </mappers>
+</configuration>

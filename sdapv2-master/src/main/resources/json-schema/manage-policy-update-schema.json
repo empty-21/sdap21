@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "pwdrulemin",
+        "pwdrulemax",
+        "pwdruleperiod",
+        "pwdrulefailnotlogin",
+        "pwdrulefailcntlimit",
+        "pwdruleanywhereable",
+        "pwdruleincnum",
+        "pwdruleincspecial",
+        "pwdruleincupper",
+        "pwdruleinclower",
+        "sstimeoutable",
+        "sstimeoutmin",
+        "dapconsoid",
+        "dapprivacygrpid",
+        "ctrlimitwon"
+    ],
+    "properties": {
+        "pwdrulemin": {
+            "type": "number"
+        },
+        "pwdrulemax": {
+            "type": "number"
+        },
+        "pwdruleperiod": {
+            "type": "number"
+        },
+        "pwdrulefailnotlogin": {
+            "type": "number"
+        },
+        "pwdrulefailcntlimit": {
+            "type": "number"
+        },
+        "pwdruleanywhereable": {
+            "type": "number"
+        },
+        "pwdruleincnum": {
+            "type": "number"
+        },
+        "pwdruleincspecial": {
+            "type": "number"
+        },
+        "pwdruleincupper": {
+            "type": "number"
+        },
+        "pwdruleinclower": {
+            "type": "number"
+        },
+        "sstimeoutable": {
+            "type": "number"
+        },
+        "sstimeoutmin": {
+            "type": "number"
+        },
+        "dapconsoid": {
+            "type": "number"
+        },
+        "dapprivacygrpid": {
+            "type": "number"
+        },
+        "ctrlimitwon": {
+            "type": "number"
+        }
+    }
+}

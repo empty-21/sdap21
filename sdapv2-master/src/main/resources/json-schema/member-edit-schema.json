@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+      "username",
+      "usercompany",
+      "userdepart",
+      "usertel"
+    ],
+    "properties": {
+      "username": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "usercompany": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "userdepart": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "usertel": {
+        "type": "string",
+        "minLength": 6,
+        "maxLength": 100
+      }
+    }
+  }

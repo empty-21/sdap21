@@ -1,0 +1,1 @@
+daml ledger  allocate-parties

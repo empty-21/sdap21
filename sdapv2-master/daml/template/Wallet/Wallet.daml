@@ -1,0 +1,154 @@
+module Wallet where
+
+import DA.Map
+import DA.Time
+
+type ServiceInfo = (Text, Text, Text) -- {ServiceName, serviceType, TokenSymbol}
+
+template Wallet
+  with
+    name : Text
+    address : Text
+    services : Map Text ServiceInfo
+    paused : Bool
+    pausable : Bool
+    owner : Party
+    operator : Party
+  where
+    signatory owner
+    observer operator
+
+    key (owner, address) : (Party, Text)
+    maintainer key._1
+
+    controller operator can      
+      Lock : ContractId LockedWallet
+        with
+          day: Int
+          hour: Int
+          minute: Int
+          second: Int
+        do
+          now <- getTime
+          let maturity = addRelTime now (days day)
+          create LockedWallet with wallet=this; ..
+    
+    controller owner can
+      JoinService : ContractId Wallet
+        with
+          blockchainAddr : Text
+          serviceName : Text
+          serviceType : Text
+          tokenSymbol : Text
+        do
+          create this with services = insert blockchainAddr (serviceType, tokenSymbol, serviceName) services
+      LeaveService : ContractId Wallet
+        with
+          blockchainAddr : Text
+        do
+          create this with services = delete blockchainAddr services
+      Transfer : ()
+        do
+          return ()
+      SafeTransfer : ()
+        do
+          return ()
+      Pause : ContractId Wallet
+        do
+          assertMsg "this wallet is not pausable" pausable
+          assertMsg "this wallet is already paused" (not paused)
+          create Wallet with paused = True;..
+      Reuse : ContractId Wallet
+        do
+          assertMsg "this wallet is not pausable" pausable
+          assertMsg "this wallet is already paused" paused
+          create Wallet with paused = False;..
+
+template LockedWallet
+  with
+    wallet: Wallet
+    maturity: Time
+  where
+    signatory wallet.operator, wallet.owner
+
+    controller wallet.operator can
+      Unlock : ContractId Wallet
+        do
+          create wallet
+
+    controller wallet.owner can
+      Clawback : ContractId Wallet
+        do
+          curTime <- getTime
+          assertMsg "this wallet does't clawback" (curTime >= maturity)
+          create wallet
+
+walletTest : Scenario ()
+walletTest = scenario do
+  operator <- getParty "operator"
+  user <- getParty "user"
+
+  userWalletCid <- user `submit` do
+    create Wallet with
+      name = "walletA"
+      address = "0x01409874197850139"
+      services = (empty : Map Text ServiceInfo)
+      paused = False
+      pausable = True
+      owner = user
+      operator = operator
+
+  userWalletCid <- user `submit` do
+    exercise userWalletCid JoinService with
+      blockchainAddr = "0xHyperledger"
+      serviceType = "ERC20"
+      tokenSymbol = "SLP"
+      serviceName = "Shinhan LoyaltyPoint"
+
+  userWalletCid <- user `submit` do
+    exercise userWalletCid JoinService with
+      blockchainAddr = "0xBESU"
+      serviceType = "ERC20"
+      tokenSymbol = "SNFT"
+      serviceName = "Shinhan NFT"
+
+  userWalletCid <- user `submit` do
+    exercise userWalletCid LeaveService with
+      blockchainAddr = "0xBESU"
+
+  userWalletCid <- user `submit` do
+    exercise userWalletCid Pause
+
+  submitMustFail user do
+    exercise userWalletCid Pause
+
+  userWalletCid <- user `submit` do
+    exercise userWalletCid Reuse
+
+  submitMustFail user do
+    exercise userWalletCid Reuse
+
+  userLockedWalletCid <- operator `submit` do
+    exercise userWalletCid Lock with
+      day = 0
+      hour = 0
+      minute = 0
+      second = 0
+
+  userWalletCid <- operator `submit` do
+    exercise userLockedWalletCid Unlock
+
+  userLockedWalletCid <- operator `submit` do
+    exercise userWalletCid Lock with
+      day = 0
+      hour = 0
+      minute = 0
+      second = 0
+
+  userWalletCid <- user `submit` do
+    exercise userLockedWalletCid Clawback
+
+  submit operator do
+    userAWallet <- fetch userWalletCid
+    assert (userAWallet.owner == user)
+  

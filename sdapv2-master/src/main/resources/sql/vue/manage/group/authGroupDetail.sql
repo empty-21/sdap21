@@ -1,0 +1,32 @@
+SELECT  DEFAULTGRP
+       ,AUTHGRPNAME
+       ,AUTHGRPNAMEID
+       ,VIEWHOST
+       ,MGRHOST
+       ,VIEWCONSO
+       ,MGRCONSO
+       ,VIEWNETWORK
+       ,MGRNETWORK
+       ,MENUMGRDA
+       ,VIEWISSUE
+       ,MGRISSUE
+       ,VIEWCONTRACT
+       ,VIEWTRANSFER
+       ,MENUMGRPOLICY
+       ,VIEWBACICPOLICY
+       ,MGRBASICPOLICY
+       ,VIEWAUTHGRP
+       ,MGRAUTHGRP
+       ,VIEWMEMBER
+       ,MGRMEMBER
+       ,VIEWKYC
+       ,MGRKYC
+       ,VIEWNOTICE
+       ,MGRNOTICE
+       ,VIEWNOTIFY
+       ,MGRNOTIFY
+       ,VIEWAUDITLOG
+       ,MENUBLOCKEXPLORER
+       ,TO_CHAR(CREATEDAT,'yyyymmddhh24miss') AS CREATED
+FROM permissin_group
+WHERE ID      =    CAST(:#${headers.id} AS INTEGER);

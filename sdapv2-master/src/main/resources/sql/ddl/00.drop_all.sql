@@ -1,0 +1,15 @@
+drop table audit;
+drop table contract;
+drop table kyc;
+drop table member;
+drop table notic;
+drop table notify;
+drop table permissin_group;
+drop table policy;
+drop table session;
+drop table token_base;
+drop table token_behavior;
+drop table token_behavior_for_template;
+drop table token_template;
+drop table transfer;
+drop table wallet;

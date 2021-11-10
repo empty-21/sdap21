@@ -1,0 +1,124 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "authgrpname",
+        "authgrpnameid",
+        "viewhost",
+        "mgrhost",
+        "viewconso",
+        "mgrconso",
+        "viewnetwork",
+        "mgrnetwork",
+        "menumgrda",
+        "viewissue",
+        "mgrissue",
+        "viewcontract",
+        "viewtransfer",
+        "menumgrpolicy",
+        "viewbacicpolicy",
+        "mgrbasicpolicy",
+        "viewauthgrp",
+        "mgrauthgrp",
+        "viewmember",
+        "mgrmember",
+        "viewkyc",
+        "mgrkyc",
+        "viewnotice",
+        "mgrnotice",
+        "viewnotify",
+        "mgrnotify",
+        "viewauditlog",
+        "menublockexplorer"
+    ],
+    "properties": {
+        "authgrpname": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 30
+        },
+        "authgrpnameid": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 30
+        },
+        "viewhost": {
+            "type": "boolean"
+        },
+        "mgrhost": {
+            "type": "boolean"
+        },
+        "viewconso": {
+            "type": "boolean"
+        },
+        "mgrconso": {
+            "type": "boolean"
+        },
+        "viewnetwork": {
+            "type": "boolean"
+        },
+        "mgrnetwork": {
+            "type": "boolean"
+        },
+        "menumgrda": {
+            "type": "boolean"
+        },
+        "viewissue": {
+            "type": "boolean"
+        },
+        "mgrissue": {
+            "type": "boolean"
+        },
+        "viewcontract": {
+            "type": "boolean"
+        },
+        "viewtransfer": {
+            "type": "boolean"
+        },
+        "menumgrpolicy": {
+            "type": "boolean"
+        },
+        "viewbacicpolicy": {
+            "type": "boolean"
+        },
+        "mgrbasicpolicy": {
+            "type": "boolean"
+        },
+        "viewauthgrp": {
+            "type": "boolean"
+        },
+        "mgrauthgrp": {
+            "type": "boolean"
+        },
+        "viewmember": {
+            "type": "boolean"
+        },
+        "mgrmember": {
+            "type": "boolean"
+        },
+        "viewkyc": {
+            "type": "boolean"
+        },
+        "mgrkyc": {
+            "type": "boolean"
+        },
+        "viewnotice": {
+            "type": "boolean"
+        },
+        "mgrnotice": {
+            "type": "boolean"
+        },
+        "viewnotify": {
+            "type": "boolean"
+        },
+        "mgrnotify": {
+            "type": "boolean"
+        },
+        "viewauditlog": {
+            "type": "boolean"
+        },
+        "menublockexplorer": {
+            "type": "boolean"
+        }
+    }
+}

@@ -1,0 +1,708 @@
+module ERC721 where
+
+import DA.Map as Map
+import DA.List as List
+import DA.Optional
+
+template ERC721
+  with
+    -- base
+    serviceName   : Text
+    tokenSymbol   : Text
+    symbolImage   : Text
+    category      : Text
+    uuid          : Text
+    -- TTF
+    pausable      : Bool
+    mintable      : Bool
+    burnable      : Bool
+    distributable : Bool
+    dividable     : Bool
+    decimals      : Int
+    delegable     : Bool
+    -- balance
+    tokenOwners   : Map Int Text
+    holderTokens  : Map Text [Int]
+    -- for user
+    userIDs       : [Party]
+    lockedUserIDs : [Party]
+    tokenIndex    : Int
+    -- for admin
+    owner         : Party
+    ownerAddress  : Text
+    issuer        : Party
+    issuerAddress : Text
+    operator      : Party
+    observers     : [Party]
+    blockchainAddr: Text
+    -- opt
+    baseURI       : Text
+    tokenURIs     : Map Int Text
+  where
+    signatory issuer
+    observer operator, observers, userIDs
+
+    key (issuer, uuid) : (Party, Text)
+    maintainer key._1
+
+    controller operator can
+      InsertUser : ContractId ERC721
+        with
+          userID : Party
+        do
+          assertMsg "userID is already exist" (userID `notElem` userIDs)
+          create this with
+            userIDs = userID :: userIDs
+
+      InsertAddress : ContractId ERC721
+        with
+          address : Text
+        do
+          assertMsg "address is already exist" (not (Map.member address holderTokens))
+          let balance = []
+          create this with
+            holderTokens = Map.insert address balance holderTokens
+
+      DeleteUser : ContractId ERC721
+        with
+          userID : Party
+        do
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+          create this with
+            userIDs = List.delete userID userIDs
+
+      DeleteAddress : ContractId ERC721
+        with
+          address : Text
+        do
+          assertMsg "address is not exist" (Map.member address holderTokens)
+          assertMsg "balance is not 0" (Map.lookup address holderTokens == Some [])
+          create this with
+            holderTokens = Map.delete address holderTokens
+      
+      LockUser : ContractId ERC721
+        with
+          userID : Party
+        do
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+          assertMsg "userID is already lockedList" (userID `notElem` lockedUserIDs)
+          create this with
+            lockedUserIDs = userID :: lockedUserIDs
+
+      UnlockUser : ContractId ERC721
+        with
+          userID : Party
+        do
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+          assertMsg "userID is not lockedList" (userID `elem` lockedUserIDs)
+          create this with
+            lockedUserIDs = List.delete userID lockedUserIDs
+
+      Lock : ContractId LockedToken
+        with
+          lockerID : Party
+        do
+          create LockedToken with
+            token = this
+            lockerID = lockerID
+
+    controller issuer can
+      SetupDecimals : ContractId ERC721
+        with
+          decimal : Int
+        do
+          create this with
+            decimals = decimal
+
+      SetupBlockChainAddr : ContractId ERC721
+        with
+          requestBlockchainAddr : Text
+        do
+          create this with blockchainAddr = requestBlockchainAddr
+
+      Mint : ContractId ERC721
+        with
+          address : Text
+          userID : Party
+          url    : Text
+        do
+          assertMsg "this service is not Mintable" mintable
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+
+          -- let tokenIds = tokenID :: fromSome (Map.lookup userAddress holderTokens) 
+          let tokenIds = tokenIndex :: fromSome (Map.lookup address holderTokens)
+
+          create this with
+            tokenOwners = Map.insert tokenIndex address tokenOwners
+            holderTokens = Map.insert address tokenIds holderTokens
+            tokenURIs = Map.insert tokenIndex url tokenURIs
+            tokenIndex = tokenIndex + 1
+            -- tokenOwners = Map.insert tokenID userAddress tokenOwners
+            -- holderTokens = Map.insert userAddress tokenIds holderTokens
+
+      Burn : ContractId ERC721
+        with
+          address : Text
+          userID : Party
+          tokenID : Int
+        do
+          
+          assertMsg "this service is not Burnable" burnable
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+
+          assertMsg "tokenID is not yours" (tokenID `elem` (fromSome (Map.lookup address holderTokens)))
+          let tokenIds = fromSome (Map.lookup address holderTokens)
+          let replaceIds = List.delete tokenID tokenIds
+          create this with
+            tokenOwners = Map.delete tokenID tokenOwners
+            holderTokens = Map.insert address replaceIds holderTokens
+            tokenURIs = Map.delete tokenID tokenURIs
+          -- let tokenIds = fromSome (Map.lookup userAddress holderTokens)
+          -- let replaceIds = List.delete tokenID tokenIds
+
+          -- create this with
+          --   tokenOwners = Map.delete tokenID tokenOwners
+          --   holderTokens = Map.insert userAddress replaceIds holderTokens
+
+      nonconsuming TotalSupply : Int
+        do
+          return (Map.size tokenOwners)
+
+    choice MintNFT : ContractId ERC721
+      with 
+        address: Text
+        userID : Party
+        url    : Text
+      controller userID
+        do  
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+          
+          -- let tokenIndexOld = this.tokenIndex
+          let tokenIds = tokenIndex :: fromSome (Map.lookup address holderTokens) 
+          create this with
+            tokenOwners = Map.insert tokenIndex address tokenOwners
+            holderTokens = Map.insert address tokenIds holderTokens
+            tokenURIs = Map.insert tokenIndex url tokenURIs
+            tokenIndex = tokenIndex + 1 
+
+    choice BurnNFT : ContractId ERC721
+      with 
+        address: Text
+        userID : Party
+        burnTokenID : Int
+      controller userID
+        do  
+          assertMsg "userID is not exist" (userID `elem` userIDs)
+          assertMsg "tokenID is not yours" (burnTokenID `elem` (fromSome (Map.lookup address holderTokens)))
+          let tokenIds = fromSome (Map.lookup address holderTokens)
+          let replaceIds = List.delete burnTokenID tokenIds
+          create this with
+            tokenOwners = Map.delete burnTokenID tokenOwners
+            holderTokens = Map.insert address replaceIds holderTokens
+            tokenURIs = Map.delete burnTokenID tokenURIs
+
+    choice TransferERC721 : ContractId ERC721
+      with
+        fromID : Party
+        fromAddress : Text
+        toID : Party
+        toAddress : Text
+        tokenID : Int
+      controller fromID
+        do
+          assertMsg "from userID is not exist" (fromID `elem` userIDs)
+          assertMsg "to userID is not exist" (toID `elem` userIDs)
+          assertMsg "tokenID is not yours" (tokenID `elem` (fromSome (Map.lookup fromAddress holderTokens)))
+
+          let fromTokenIds = fromSome (Map.lookup fromAddress holderTokens)
+          let deletedFromTokenIds = List.delete tokenID fromTokenIds
+          let toTokenIds = fromSome (Map.lookup toAddress holderTokens)
+          let addedToTokenIds = tokenID :: fromSome (Map.lookup toAddress holderTokens) 
+
+          let fromHolderTokens = Map.insert fromAddress deletedFromTokenIds holderTokens
+          let toHolderTokens = Map.insert toAddress addedToTokenIds fromHolderTokens
+
+          create this with
+            tokenOwners = Map.insert tokenID toAddress tokenOwners
+            holderTokens = toHolderTokens
+
+    choice CreateSafeTransferRequest : (ContractId SafeTransferRequest, ContractId ERC721)
+      with
+        fromID : Party
+        fromAddress : Text
+        toID : Party
+        toAddress :Text
+        lockerID : Party
+        lockerAddress : Text
+        tokenID : Int
+      controller fromID
+        do
+          assertMsg "userID is not exist" (fromID `elem` userIDs)
+          assertMsg "userID is not exist" (toID `elem` userIDs)
+          assertMsg "locker is not exist" (lockerID `elem` userIDs)
+          assertMsg "tokenID is not yours" (tokenID `elem` (fromSome (Map.lookup fromAddress holderTokens)))
+
+          let fromTokenIds = fromSome (Map.lookup fromAddress holderTokens)
+          let deletedFromTokenIds = List.delete tokenID fromTokenIds
+          let lockerTokenIds = fromSome (Map.lookup lockerAddress holderTokens)
+          let addedLockerTokenIds = tokenID :: fromSome (Map.lookup lockerAddress holderTokens)
+
+          let fromHolderTokens = Map.insert fromAddress deletedFromTokenIds holderTokens
+          let lockerHolderTokens = Map.insert lockerAddress addedLockerTokenIds fromHolderTokens
+
+          tokenCid <- create this with
+            tokenOwners = Map.insert tokenID lockerAddress tokenOwners
+            holderTokens = lockerHolderTokens
+
+          safeTransferRequestCid <- create SafeTransferRequest with
+            ..
+          
+          return (safeTransferRequestCid, tokenCid)
+
+template SafeTransferRequest
+  with
+    fromID : Party
+    fromAddress : Text
+    toID : Party
+    toAddress : Text
+    tokenID : Int
+    lockerID : Party
+    lockerAddress : Text
+    operator : Party
+    observers : [Party]
+  where
+    signatory fromID
+    observer toID, lockerID, operator, observers
+
+    controller lockerID can
+      AcceptSafeTransfer : ContractId ERC721
+        with erc721Cid : ContractId ERC721
+          do
+            exercise erc721Cid TransferERC721 with
+              fromID = lockerID
+              fromAddress = lockerAddress; ..
+
+-- LockedToken
+template LockedToken
+  with
+    token : ERC721
+    lockerID : Party
+  where
+    signatory lockerID, token.issuer
+
+    controller lockerID can
+      Unlock : ContractId ERC721
+        do
+          create token
+
+-- Delegation
+template Delegation
+  with
+    signer : Party
+    delegees : [Party]
+  where
+    signatory signer
+    observer delegees
+
+    nonconsuming choice Transfer : ContractId ERC721
+      with
+        erc721Cid : ContractId ERC721
+        fromID : Party
+        fromAddress : Text
+        toID : Party
+        toAddress : Text
+        tokenID : Int
+        delegee : Party
+      controller delegee
+        do
+          exercise erc721Cid TransferERC721 with ..
+
+    nonconsuming choice SafeTransfer : (ContractId SafeTransferRequest, ContractId ERC721)
+      with
+        erc721Cid : ContractId ERC721
+        fromID : Party
+        fromAddress : Text
+        toID : Party
+        toAddress : Text
+        tokenID : Int
+        lockerID : Party
+        lockerAddress : Text
+        delegee : Party
+        operator : Party
+      controller delegee
+      do
+        exercise erc721Cid CreateSafeTransferRequest with ..
+
+operatorTest = scenario do
+  owner <- getParty "owner"
+  issuer <- getParty "issuer"
+  operator <- getParty "operator"
+  alice <- getParty "alice"
+  bob <- getParty "bob"
+  blind <- getParty "blind"
+
+  -- [token Cid 생성]
+  --   owner : 소유인
+  --   issuer : 발행인
+  --   operator : 운영자
+  tokenCid <- submit issuer do
+    create ERC721 with
+      serviceName = "LoyaltyPoint"
+      tokenSymbol = "hancom point"
+      category = "금융"
+      symbolImage = "HP"
+      uuid = "0xUUID"
+      pausable = True
+      mintable = True
+      burnable = True
+      distributable = True
+      dividable = False
+      decimals = 0
+      delegable = True
+      tokenOwners = (empty : Map Int Text)
+      holderTokens = (empty : Map Text [Int])
+      blockchainAddr = "0xBESU"
+      baseURI = ""
+      tokenURIs = (empty : Map Int Text)
+      ownerAddress = "0xOwner"
+      issuerAddress = "0xIssuer"
+      userIDs = []
+      lockedUserIDs = []
+      observers = [operator]
+      tokenIndex = 0
+      ..
+
+  --  Choice:InsertUser
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = alice
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xAlice"
+
+  submitMustFail operator do
+    exercise tokenCid InsertUser with
+      userID = alice
+
+  submitMustFail operator do
+    exercise tokenCid InsertAddress with
+      address = "0xAlice"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = bob
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xBob"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = blind
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xBlind"
+
+  -- Choice:LockUser
+  tokenCid <- submit operator do
+    exercise tokenCid LockUser with userID = blind
+
+  submitMustFail operator do
+    exercise tokenCid LockUser with userID = blind
+
+  -- Choice:UnlockUser
+  tokenCid <- submit operator do
+    exercise tokenCid UnlockUser with userID = blind
+
+  submitMustFail operator do
+    exercise tokenCid UnlockUser with userID = blind
+
+  -- Choice:DeleteUser
+  tokenCid <- submit operator do
+    exercise tokenCid DeleteUser with
+      userID = blind
+
+  tokenCid <- submit operator do
+    exercise tokenCid DeleteAddress with
+      address = "0xBlind"
+
+  -- Choice:Lock
+  lockedTokenCid <- submit operator do
+    exercise tokenCid Lock with lockerID = operator
+
+  -- Choice:Unlock
+  tokenCid <- submit operator do
+    exercise lockedTokenCid Unlock
+
+  submit issuer do
+    token <- fetch tokenCid
+    assert(token.issuer == issuer)
+
+issuerTest = scenario do
+  owner <- getParty "owner"
+  issuer <- getParty "issuer"
+  operator <- getParty "operator"
+  alice <- getParty "alice"
+  blind <- getParty "blind"
+
+   -- [token Cid 생성]
+  --   owner : 소유인
+  --   issuer : 발행인
+  --   operator : 운영자
+  tokenCid <- submit issuer do
+    create ERC721 with
+      serviceName = "LoyaltyPoint"
+      tokenSymbol = "hancom point"
+      symbolImage = "HP"
+      category = "금융"
+      uuid = "0xUUID"
+      pausable = True
+      mintable = True
+      burnable = True
+      distributable = True
+      dividable = False
+      decimals = 0
+      delegable = True
+      tokenOwners = (empty : Map Int Text)
+      holderTokens = (empty : Map Text [Int])
+      blockchainAddr = "0xBESU"
+      baseURI = ""
+      tokenURIs = (empty : Map Int Text)
+      ownerAddress = "0xOwner"
+      issuerAddress = "0xIssuer"
+      userIDs = []
+      lockedUserIDs = []
+      observers = [operator]
+      tokenIndex = 0
+      ..
+
+  -- init
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = owner
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xOwner"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = issuer
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xIssuer"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = alice
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xAlice"
+
+  -- Choice:SetupDecimals
+  tokenCid <- submit issuer do
+    exercise tokenCid SetupDecimals with
+      decimal = 0
+
+  -- Choice:Mint
+  tokenCid <- submit issuer do
+    exercise tokenCid Mint with
+      address = "0xAlice"
+      userID = alice
+      url = "urltest"
+
+  tokenCid <- submit issuer do
+    exercise tokenCid Mint with
+      address = "0xAlice"
+      userID = alice
+      url = "urltest"
+
+  tokenCid <- submit issuer do
+    exercise tokenCid Mint with
+      address = "0xAlice"
+      userID = alice
+      url = "urltest"
+
+  -- Choice:Burn
+  tokenCid <- submit issuer do
+    exercise tokenCid Burn with
+      address = "0xAlice"
+      userID = alice
+      tokenID = 2
+
+  -- Choice:TotalSupply
+  supply <- submit issuer do
+    exercise tokenCid TotalSupply
+  assert(supply == 2)
+
+  submit issuer do
+    token <- fetch tokenCid
+    assert(token.issuer == issuer)
+
+userTest = scenario do
+  owner <- getParty "owner"
+  issuer <- getParty "issuer"
+  operator <- getParty "operator"
+  alice <- getParty "alice"
+  bob <- getParty "bob"
+  blind <- getParty "blind"
+  delegee <- getParty "delegee"
+
+   -- [token Cid 생성]
+  --   owner : 소유인
+  --   issuer : 발행인
+  --   operator : 운영자
+  tokenCid <- submit issuer do
+    create ERC721 with
+      serviceName = "LoyaltyPoint"
+      tokenSymbol = "hancom point"
+      symbolImage = "HP"
+      category = "금융"
+      uuid = "0xUUID"
+      pausable = True
+      mintable = True
+      burnable = True
+      distributable = True
+      dividable = False
+      decimals = 0
+      delegable = True
+      tokenOwners = (empty : Map Int Text)
+      holderTokens = (empty : Map Text [Int])
+      blockchainAddr = "0xBESU"
+      baseURI = ""
+      tokenURIs = (empty : Map Int Text)
+      ownerAddress = "0xOwner"
+      issuerAddress = "0xIssuer"
+      userIDs = []
+      lockedUserIDs = []
+      observers = [operator]
+      tokenIndex = 0
+      ..
+
+  -- init
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = owner
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xOwner"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = issuer
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xIssuer"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = alice
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xAlice"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = bob
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xBob"
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertUser with
+      userID = delegee
+
+  tokenCid <- submit operator do
+    exercise tokenCid InsertAddress with
+      address = "0xdelegee"
+
+  tokenCid <- submit issuer do
+    exercise tokenCid Mint with
+      address = "0xBob"
+      userID = bob
+      url = "urltest"
+
+  tokenCid <- submit issuer do
+    exercise tokenCid Mint with
+      address = "0xBob"
+      userID = bob
+      url = "urltest"
+
+  tokenCid <- submit issuer do
+    exercise tokenCid Mint with
+      address = "0xBob"
+      userID = bob
+      url = "urltest"
+
+  -- Choice:TransferERC721
+  tokenCid <- submit bob do
+    exercise tokenCid TransferERC721 with
+      fromID = bob
+      fromAddress = "0xBob"
+      toID = alice
+      toAddress = "0xAlice"
+      tokenID = 1
+  
+  -- Choice:CreateSafeTransferRequest
+  (safeTransferRequest, tokenCid) <- submit alice do
+    exercise tokenCid CreateSafeTransferRequest with
+      fromID = alice
+      fromAddress = "0xAlice"
+      toID = bob
+      toAddress = "0xBob"
+      lockerID = issuer
+      lockerAddress = "0xIssuer"
+      tokenID = 1
+      
+  -- Choice:AcceptSafeTransfer
+  tokenCid <- submit issuer do
+    exercise safeTransferRequest AcceptSafeTransfer with
+      erc721Cid = tokenCid
+  
+  -- Choice:Delegation
+  bobDelegationCid <- submit bob do
+    create Delegation with
+      signer = bob
+      delegees = [delegee]
+
+  tokenCid <- submit delegee do
+    exercise bobDelegationCid Transfer with
+      erc721Cid = tokenCid
+      fromID = bob
+      fromAddress = "0xBob"
+      toID = alice
+      toAddress = "0xAlice"
+      tokenID = 2
+      delegee = delegee
+
+  submitMustFail blind do
+    exercise bobDelegationCid Transfer with
+      erc721Cid = tokenCid
+      fromID = bob
+      fromAddress = "0xBob"
+      toID = alice
+      toAddress = "0xAlice"
+      tokenID = 1
+      delegee = delegee
+
+  submitMustFail alice do
+    exercise bobDelegationCid Transfer with
+      erc721Cid = tokenCid
+      fromID = bob
+      fromAddress = "0xBob"
+      toID = alice
+      toAddress = "0xAlice"
+      tokenID = 1
+      delegee = alice
+
+  submit issuer do
+    token <- fetch tokenCid
+    assert(token.issuer == issuer)

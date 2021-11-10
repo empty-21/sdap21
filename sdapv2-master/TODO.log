@@ -1,0 +1,19 @@
+ [2021-10-27 09:40:43]
+- Besu로 보내는 모든 tx는 db에 저장후 batch를 통해 일괄 처리 (SMS 및 메일발송 관리 이력과 동일)
+ => 또는 daml에 execise로 처리 (db에 비해 관리는 복잡하지만 불변 데이터로써의 가치는 있음)
+- 시나리오 기반 fail에 따른 failback 전략 필요
+[2021-10-15 10:37:56]
+- serivce에 포함된 erc 정보는 실제 erc정보를 참조하지 않고 최초 등록된 정보만 포함
+- mint등 erc정보가 갱신될때 service에 포함된 erc는 갱신되지 않음
+- key를 통해 서로 참조하도록 해야하지 않나?
+[2021-10-13 17:51:16]
+- 모든 SQL관련 template은 QueryRoute클래스에서 관리
+[2021-10-13 17:36:09]
+ - saveContractService.saveContractChoice_Transfer() 
+   -> $push: { execiserChoice: ChoiceData } 구문 구현필요
+[2021-09-06 11:44:22]
+ - header이름이 다른 sql파일을 사용할경우 다름 process에서 header을 덮어씌워서 처리함
+ - rollback을 위한 계약서 목록 추적 필요
+[2021-08-31 09:48:05]
+ - Service.daml 아래 구문은 왜 필요한가?
+ assertMsg "signatories are not enought" (sort alreadySignedParties == sort service.signatories)

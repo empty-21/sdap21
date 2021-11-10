@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "required": [
+    "type",
+    "name",
+    "description",
+    "writer",
+    "date",
+    "address",
+    "uuid"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 30
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "writer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "date": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string",
+      "length": 42
+    },
+    "uuid": {
+      "type": "string"
+    }
+  }
+}

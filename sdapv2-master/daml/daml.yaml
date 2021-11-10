@@ -1,0 +1,27 @@
+sdk-version: 1.17.0
+name: damlbiz
+parties:
+  - alice
+  - bob
+  - cbank
+  - sledger
+  - operator
+  - hancomwith
+  - hakuna
+  - hakuna2
+  - dongha
+  - gildong
+  - ssgallary
+  - gilsoon
+  - shinhands
+  - shinhancard
+  - shbank
+  - shinhanDSTEST
+  - dap_operator
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-trigger
+start-navigator: true
+

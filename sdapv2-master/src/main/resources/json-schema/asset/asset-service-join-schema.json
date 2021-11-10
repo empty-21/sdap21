@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "address",
+        "uuid"
+    ],
+    "properties": {
+        "address": {
+            "type": "string",
+            "maxLength": 42
+        },
+        "uuid": {
+            "type": "string",
+            "maxLength": 100
+        }
+    }
+}

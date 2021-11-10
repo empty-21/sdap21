@@ -1,0 +1,333 @@
+module Service where
+
+import DA.List as List
+import DA.Map as Map
+
+type TokenInfo = (Text, Text) -- (TokenType, TokenSymbol)
+
+template ServiceRequest
+  with
+    serviceName: Text
+    tokenSymbol: Text
+    category: Text
+    totalSupply: Decimal
+    attribute: Map Text Bool
+    symbolImage: Text
+    -- 실제 돈을 받을 주소 (owner / issuer)
+    issuerAddress : Text
+    ownerAddress : Text
+    issuer: Party
+    owner : Party
+    operator: Party
+    observers:[Party]
+    uuid: Text
+    serviceType: Text
+  where
+    signatory issuer
+    observer operator, observers
+
+    controller issuer can
+      nonconsuming Invite : ContractId ServiceProposal
+        with signatories: [Party]
+        do
+          now <- getTime
+          create ServiceProposal
+            with
+              alreadySignedParties = [issuer]
+              rejectedParties = []
+              rejectedReason = ""
+              observers=observers
+              service = Service with
+                createAt = now
+                tokenInfos = (empty : Map Text TokenInfo)
+                ..
+              ..
+
+
+template ServiceProposal
+  with
+    serviceName: Text
+    tokenSymbol: Text
+    category: Text
+    attribute: Map Text Bool
+    issuer: Party
+    owner : Party
+    service: Service
+    symbolImage: Text
+    -- 실제 돈을 받을 주소 (owner / issuer)
+    issuerAddress : Text
+    ownerAddress : Text
+    observers:[Party]
+    operator:Party
+    alreadySignedParties: [Party]
+    rejectedParties: [Party]
+    rejectedReason: Text
+    uuid : Text
+    serviceType: Text
+  where
+    signatory alreadySignedParties
+    observer service.signatories, observers, operator
+    ensure
+      -- 이미 서명한 서명자 목록에서 서명자는 유일
+      unique alreadySignedParties
+
+    -- 서명 해야할 서명자 목록 정의
+    let toSignParties = List.filter(`notElem` alreadySignedParties) service.signatories
+
+    choice Sign : ContractId ServiceProposal with
+        signer : Party
+      controller signer
+        do
+          -- 서명자는 서명해야할 서명자 목록에 존재 유무 확인
+          assertMsg "signer is not exist in signatories" (signer `elem` toSignParties)
+          -- 거절자는 서명 불가
+          assertMsg "signer is already exist in rejectedParties" (signer `notElem` rejectedParties)
+          -- 서명한 서명자 목록에 서명자 추가
+          create this with alreadySignedParties = signer :: alreadySignedParties
+
+    choice Reject : ContractId ServiceProposal with
+        rejecter : Party
+        rejectReason : Text
+      controller rejecter
+        do
+          -- 서명자는 서명해야할 서명자 목록에 존재 유무 확인
+          assertMsg "rejecter is not exist in signatories" (rejecter `elem` toSignParties)
+          -- 거절한 서명자 목록에 거절자 추가
+          create this with
+            rejectedParties = rejecter :: rejectedParties
+            rejectedReason = rejectReason
+
+    choice Finalize : ContractId Service with
+        signer : Party
+      controller signer
+        do
+          -- 이미 서명한 서명자 목록과 서명해야할 서명자 목록이 일치하는지 확인
+          assertMsg "signatories are not enought" (sort alreadySignedParties == sort service.signatories)
+          assertMsg "this contract is rejected" (List.null rejectedParties)
+          now <- getTime
+          create service with createAt = now
+
+    choice Archives : () with
+      controller issuer
+        do return ()
+
+
+template Service
+  with
+    serviceName: Text
+    tokenSymbol: Text
+    category: Text
+    attribute: Map Text Bool
+    signatories: [Party]
+    symbolImage: Text
+    totalSupply: Decimal
+    -- 실제 돈을 받을 주소 (owner / issuer)
+    issuerAddress : Text
+    ownerAddress : Text
+    issuer: Party
+    owner : Party
+    operator: Party
+    createAt : Time
+    observers:[Party]
+    -- 
+    uuid : Text
+    serviceType: Text
+    tokenInfos : Map Text TokenInfo -- [blockchainAddr](TokenType, TokenSymbol)
+    
+  where
+    signatory issuer
+    observer  operator, signatories, observers
+    ensure
+      unique signatories
+
+    controller issuer can
+      MintERC20 :ContractId Service
+        with
+          amount : Decimal
+        do
+          assertMsg "This Service is NFT then can not exercise MintERC20" (serviceType =="FT")
+          let minted = totalSupply + amount
+          create this with  totalSupply = minted
+
+      BurnERC20 : ContractId Service
+        with
+          amount  : Decimal
+        do
+          assertMsg "This Service is NFT then can not exercise BurnERC20" (serviceType =="FT")
+          let burned = totalSupply - amount
+          create this with totalSupply = burned
+      -- 721에 대한 mint, burn 개발해야함 
+      MintERC721 :ContractId Service
+        do
+          assertMsg "This Service is FT then can not exercise MintERC721" (serviceType =="NFT")
+          let minted = totalSupply + 1.0
+          create this with  totalSupply = minted
+
+      BurnERC721 : ContractId Service
+        do
+          assertMsg "This Service is FT then can not exercise BurnERC721" (serviceType =="NFT")
+          assertMsg "There is no any tokens" (totalSupply /= 0.0) 
+          let burned = totalSupply - 1.0
+          create this with totalSupply = burned
+      AddTokenInfo: ContractId Service
+        with
+          requestBlockchainAddr : Text
+          requestTokenType : Text
+          requestTokenSymbol : Text
+        do
+          assertMsg "blockchainAddr is already exist" (not (Map.member requestBlockchainAddr tokenInfos))
+
+          let tokenInfo = (requestTokenType, requestTokenSymbol)
+
+          create this with tokenInfos = insert requestBlockchainAddr (requestTokenType, requestTokenSymbol) tokenInfos
+
+      DeleteTokenInfo: ContractId Service
+        with
+          requestBlockchainAddr : Text
+        do
+          assertMsg "blockchainAddr is not exist" (Map.member (requestBlockchainAddr) tokenInfos)
+
+          create this with tokenInfos = Map.delete requestBlockchainAddr tokenInfos
+
+    controller operator can
+      LockService : ContractId LockedService
+        do
+          create LockedService with service=this
+
+
+template LockedService
+  with
+    service: Service
+  where
+    signatory service.issuer
+
+    controller service.operator can
+      UnlockService : ContractId Service
+        do
+          create service
+
+cbdcServiceTest = scenario do
+  issuer <- getParty "issuer"
+  owner <- getParty "owner"
+  operator <- getParty "operator"
+  shinhanBank <- getParty "shinhanBank"
+  shinhanCard <- getParty "shinhanCard"
+  userA <- getParty "userA"
+  userB <- getParty "userB"
+
+  cbdcServiceRequestCid <- issuer `submit` do
+    create ServiceRequest with
+      observers = [operator,issuer]
+      serviceName = "Hancom Coin"
+      tokenSymbol = "HCT"
+      totalSupply = 0.0
+      attribute =(empty : Map Text Bool)
+      issuer = issuer
+      operator = operator
+      symbolImage = "HCT"
+      category ="금융"
+      ownerAddress ="0x1123"
+      issuerAddress ="0x888888"
+      uuid = "0xUUID"
+      owner 
+      serviceType ="NFT"
+
+  cbdcServiceProposalCid <- issuer `submit` do
+    exercise cbdcServiceRequestCid Invite with signatories = [issuer, operator, shinhanBank, shinhanCard]
+
+  cbdcServiceProposalCid <- shinhanBank `submit` do
+    exercise cbdcServiceProposalCid Sign with signer = shinhanBank
+
+  cbdcServiceProposalCid <- shinhanCard `submit` do
+    exercise cbdcServiceProposalCid Sign with signer = shinhanCard
+
+  cbdcServiceProposalCid <- operator `submit` do
+    exercise cbdcServiceProposalCid Sign with signer = operator
+
+  cbdcServiceCid <- submit issuer do
+    exercise cbdcServiceProposalCid Finalize with signer = issuer
+
+  cbdcLockedServiceCid <- submit operator do
+    exercise cbdcServiceCid LockService
+      
+  submit operator do
+    cbdcLockedService <- fetch cbdcLockedServiceCid
+    assert (cbdcLockedService.service.operator == operator)
+
+  cbdcServiceCid <- submit operator do
+    exercise cbdcLockedServiceCid UnlockService
+
+  -- cbdcServiceCid <- submit issuer do
+  --   exercise cbdcServiceCid MintERC20 with amount = 100.0
+  cbdcServiceCid <- submit issuer do
+    exercise cbdcServiceCid MintERC721 
+
+  cbdcServiceCid <- submit issuer do
+    exercise cbdcServiceCid AddTokenInfo with
+      requestBlockchainAddr = "0xBESU"
+      requestTokenType = "ERC20"
+      requestTokenSymbol = "CBDC"
+
+  cbdcServiceCid <- submit issuer do
+    exercise cbdcServiceCid DeleteTokenInfo with
+      requestBlockchainAddr = "0xBESU"
+
+  submit issuer do
+    cbdcService <- fetch cbdcServiceCid
+    assert (cbdcService.issuer == issuer)
+
+
+cbdcServiceArchiveTest = scenario do
+  issuer <- getParty "issuer"
+  owner <- getParty "owner"
+  operator <- getParty "operator"
+  shinhanBank <- getParty "shinhanBank"
+  shinhanCard <- getParty "shinhanCard"
+  userA <- getParty "userA"
+  userB <- getParty "userB"
+
+  cbdcServiceRequestCid <- issuer `submit` do
+    create ServiceRequest with
+      observers = [operator,issuer]
+      serviceName = "Hancom Coin"
+      tokenSymbol = "HCT"
+      totalSupply = 0.0
+      attribute = (empty : Map Text Bool)
+      -- attribute = (empty : Map Text Bool)
+      issuer = issuer
+      operator = operator
+      symbolImage = "HCT"
+      category ="금융"
+      ownerAddress ="0x1123"
+      issuerAddress ="0x888888"
+      uuid = "0xUUID"
+      owner
+      serviceType ="FT"
+
+  cbdcServiceProposalCid <- issuer `submit` do
+    exercise cbdcServiceRequestCid Invite with signatories = [issuer, operator, shinhanBank, shinhanCard]
+
+  cbdcServiceProposalCid <- shinhanBank `submit` do
+    exercise cbdcServiceProposalCid Sign with signer = shinhanBank
+
+  cbdcServiceProposalCid <- shinhanCard `submit` do
+    exercise cbdcServiceProposalCid Reject with
+      rejecter = shinhanCard
+      rejectReason = "비허가"
+
+  submitMustFail shinhanCard do
+    exercise cbdcServiceProposalCid Sign with signer = shinhanCard
+
+  cbdcServiceProposalCid <- operator `submit` do
+    exercise cbdcServiceProposalCid Sign with signer = operator
+
+  submitMustFail issuer do
+    exercise cbdcServiceProposalCid Finalize with
+      signer = issuer
+
+  submit issuer do
+    cbdcServiceProposal <- fetch cbdcServiceProposalCid
+    assert (cbdcServiceProposal.serviceName == "Hancom Coin")
+
+  submit issuer do
+    exercise cbdcServiceProposalCid Archives

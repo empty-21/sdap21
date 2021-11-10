@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "required": [
+    "address",
+    "tokenid",
+    "signData",
+    "uuid"
+  ],
+  "properties": {
+    "address": {
+      "type": "string",
+      "length":42
+    },
+    "tokenid": {
+      "type": "string",
+      "minLength": 1
+    },
+    "signData": {
+      "type": "string"
+    },
+    "uuid": {
+      "type": "string"
+    }
+  }
+}
